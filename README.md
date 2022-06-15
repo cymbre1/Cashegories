@@ -1,4 +1,4 @@
-# STA 418 Final Project Proposal - Cachegories
+# STA 418 Final Project Proposal - Cashegories
 
 ## Overview
 My idea is to make a website which I can use to organize and visualize my monthly budget. The tool will clean and categorize the data, which will be imported in the form of a CSV. The tool will use known information about my budget to categorize purchases. For example, If I know that I spend $6.99 on Disney+ every month, I can find what it looks like in the bank statement and automatically put that into my subscriptions category in my budget. Because of this, at least for now, this tool will be very specific to me and my budget. Any purchases that cannot be automatically categorized will be displayed in the app so that it can be categorized by the user. Once this data has been categorized, the app will generate graphs and visualizations of the data that it has collected. The general ideas that I have for data visualizations are:
