@@ -1,6 +1,7 @@
 # Load packages ----------------------------------------------------------------
 library(shiny)
 library(tidyverse)
+library(plotrix)
 
 # Load data --------------------------------------------------------------------
 
@@ -34,20 +35,15 @@ bankinfo <- bankinfo %>%
     str_detect(Description, "CHASE")~"BILLS",
     str_detect(Description, "SHELL OIL")~"BILLS",
     str_detect(Description, "VRIESLAND COUNTRY STORE")~"BILLS",
-    str_detect(Description, "Monarch")~"RENT",
     str_detect(Description, "Spotify USA")~"BILLS",
     str_detect(Description, "EAST 44TH ST AGO")~"BILLS",
     str_detect(Description, "Audible*")~"BILLS",
-    str_detect(Description, "GRAND RAPIDS FIRST")~"DONATIONS",
-    str_detect(Description, "GLAD TIDINGS")~"DONATIONS",
-    str_detect(Description, "HOLY TRINITY")~"DONATIONS",
-    str_detect(Description, "WORLD VISION")~"DONATIONS",
     str_detect(Description, "DRIP")~"CYMBRE",
     str_detect(Description, "GOOGLE *Audible")~"CYMBRE",
     str_detect(Description, "DEPOSIT")~"INCOME",
     TRUE~"UNKNOWN"
   )) %>% 
-  mutate(Amount = parse_number(Amount)) %>% 
+  mutate(Amount = as.numeric(Amount)) %>% 
   mutate(Balance = parse_number(Balance))
 
 
@@ -62,7 +58,9 @@ ui <- fluidPage(
       HTML(paste0("Total Spending: $")),
       bankinfo %>% 
         filter(type == "Withdrawal") %>% 
-        summarize(total = sum(Amount))
+        summarize(total = sum(Amount)),
+      HTML(paste0("Remaining Cymbre Fun Money")),
+        #filter(budget, Category=="CYMBRE")
     ),
     mainPanel(
       plotOutput(outputId = "barchart"),
@@ -79,9 +77,9 @@ server <- function(input, output, session) {
       group_by(category) %>% 
       summarize(total = sum(Amount)) %>%
       filter(category != "INCOME") %>% 
-    ggplot(aes(x = category, y = total, label = scales::percent(Amount))) +
+    ggplot(aes(x = category, y = total)) +
       geom_col()
-      geom_text(stat='count', aes(label=..count..), vjust=-1)
+      #geom_text(stat='count', aes(label=..count..))
   })
   output$savingsovertime <- renderPlot({
     bankinfo %>% 
