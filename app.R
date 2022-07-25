@@ -5,6 +5,7 @@ library(tidyverse)
 # Load data --------------------------------------------------------------------
 
 bankinfo <- read_csv("data.csv")
+budget <- read_csv("cymbres-budget.csv")
 bankinfo <- bankinfo %>% 
   mutate(type = case_when(
     str_detect(Description, "^WITHDRAWAL")~"Withdrawal",
@@ -23,11 +24,11 @@ bankinfo <- bankinfo %>%
 
 bankinfo <- bankinfo %>% 
   mutate(category = case_when(
-    str_detect(Description, "MEIJER")~"BILLS",
-    str_detect(Description, "HORROCKS MARKET")~"BILLS",
+    str_detect(Description, "MEIJER")~"GROCERIES",
+    str_detect(Description, "HORROCKS MARKET")~"GROCERIES",
     str_detect(Description, "Bill Payment")~"BILLS",
     str_detect(Description, "TOMMYS-EXPRESS")~"BILLS",
-    str_detect(Description, "FAMILY FARE")~"BILLS",
+    str_detect(Description, "FAMILY FARE")~"GROCERIES",
     str_detect(Description, "DTE Energy")~"UTILITIES",
     str_detect(Description, "GLAD TIDINGS")~"BILLS",
     str_detect(Description, "CHASE")~"BILLS",
@@ -45,18 +46,27 @@ bankinfo <- bankinfo %>%
     str_detect(Description, "GOOGLE *Audible")~"CYMBRE",
     str_detect(Description, "DEPOSIT")~"INCOME",
     TRUE~"UNKNOWN"
-  ))
+  )) %>% 
+  mutate(Amount = parse_number(Amount)) %>% 
+  mutate(Balance = parse_number(Balance))
+
 
 # Define UI --------------------------------------------------------------------
 
 ui <- fluidPage(
   sidebarLayout(
-    
     sidebarPanel(
-      HTML(paste0("Hello Cymbre!")),
+      HTML(paste0("Account Balance: $")),
+      bankinfo %>% 
+        summarise(Last_value_sales = last(Balance)),
+      HTML(paste0("Total Spending: $")),
+      bankinfo %>% 
+        filter(type == "Withdrawal") %>% 
+        summarize(total = sum(Amount))
     ),
     mainPanel(
-      plotOutput(outputId = "scatterplot")
+      plotOutput(outputId = "barchart"),
+      plotOutput(outputId = "savingsovertime")
     )
   )
 )
@@ -64,9 +74,19 @@ ui <- fluidPage(
 # Define server ----------------------------------------------------------------
 
 server <- function(input, output, session) {
-  output$scatterplot <- renderPlot({
-    ggplot(data = bankinfo, aes_string(x = bankinfo$category, y = bankinfo$Amount )) +
+  output$barchart <- renderPlot({
+    bankinfo %>% 
+      group_by(category) %>% 
+      summarize(total = sum(Amount)) %>%
+      filter(category != "INCOME") %>% 
+    ggplot(aes(x = category, y = total, label = scales::percent(Amount))) +
       geom_col()
+      geom_text(stat='count', aes(label=..count..), vjust=-1)
+  })
+  output$savingsovertime <- renderPlot({
+    bankinfo %>% 
+      ggplot(aes(x = as.Date(Date,"%m/%d/%y"), y = Balance)) +
+        geom_line(color = "orange")
   })
 }
   
