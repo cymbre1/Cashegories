@@ -6,7 +6,7 @@ library(plotrix)
 
 # Load data --------------------------------------------------------------------
 # Read in Data
-bankinfo <- read_csv("newdata.csv")
+bankinfo <- read_csv("data.csv")
 budget <- read_csv("cymbres-budget.csv")
 output <- read_csv("output.csv")
 
